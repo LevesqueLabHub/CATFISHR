@@ -28,3 +28,5 @@ Suggests:
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3
+URL: https://github.com/pshukla63/CATFISHR
+BugReports: https://github.com/pshukla63/CATFISHR/issues
