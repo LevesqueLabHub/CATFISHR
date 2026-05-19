@@ -1,0 +1,213 @@
+---
+title: "CATFISHR"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CATFISHR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  cache = FALSE,
+  fig.align = "center",
+  out.width = "85%",
+  dpi = 120
+)
+```
+
+# CATFISHR
+
+CATFISHR identifies malignant cells by integrating RNA expression similarity
+and inferred CNV similarity to high-confidence reference clusters.
+
+```{r setup}
+library(CATFISHR)
+library(ggplot2)
+library(patchwork)
+library(dplyr)
+```
+
+## Introduction
+
+CATFISHR requires three inputs for each data space: RNA and CNV.
+
+1. **PCA matrix**  
+   A matrix of principal component coordinates for cells. For the RNA space, this is generated from scRNA-seq expression data. For the CNV space, this can be generated from residual expression after applying inferred CNV methods such as inferCNV.
+
+2. **Cluster membership**  
+   Cluster assignments or cluster membership scores for each cell. These can be obtained using clustering algorithms such as Leiden or Louvain.
+
+3. **High-confidence malignant reference cluster(s)**  
+   One or more clusters from input 2 that are treated as malignant reference clusters. All other cells (termed query cells) are compared against these reference clusters. For the RNA space, these clusters can be selected based on cell-type annotation agreement. For the CNV space, they can be selected by visual inspection of residual inferred-CNV heatmaps.
+
+
+For additional methodological details, see the accompanying CATFISHR manuscript.
+
+## Toy dataset
+
+CATFISHR includes a small toy dataset for demonstrating the CATFISHR workflow containing the required inputs for both RNA and CNV space: PCA coordinates, cluster membership, and high-confidence malignant reference clusters.
+
+```{r}
+data("RNA_catfishr_data", package = "CATFISHR")
+data("CNV_catfishr_data", package = "CATFISHR")
+
+str(RNA_catfishr_data)
+str(CNV_catfishr_data)
+```
+
+## Calculate Mahalanobis distances
+
+In parallel in RNA and CNV space, the Mahalanobis distance is calculated for each query cell to the reference centroids. The shortest distances are extracted for each cell. 
+
+```{r}
+# In RNA space
+mahal_RNA <- calc_mahalanobis(
+  pca_matrix = RNA_catfishr_data$pca_matrix,
+  clusters = RNA_catfishr_data$clusters,
+  ref_clusters = RNA_catfishr_data$ref_clusters,
+  n_pcs = 3
+)
+
+# In CNV space
+mahal_CNV <- calc_mahalanobis(
+  pca_matrix = CNV_catfishr_data$pca_matrix,
+  clusters = CNV_catfishr_data$clusters,
+  ref_clusters = CNV_catfishr_data$ref_clusters,
+  n_pcs = 3
+)
+```
+
+## Combine Mahalanobis Distance Outputs
+
+The resulting output from `calc_mahalanobis` is formatted for running Mean Shift and plotting by combining Mahalanobis distance dataframes from both dimensions.
+
+
+```{r}
+cm_output <- format_mahal_output(
+  mahal_RNA = mahal_RNA,
+  mahal_CNV = mahal_CNV
+)
+
+head(cm_output)
+```
+
+The plot below shows the integrated space where Mean Shift clustering will be implemented.
+
+
+```{r, fig.width=8, fig.height=4.5}
+base_aes <- aes(
+  x = log2(Mahal_Dist_CNV),
+  y = log2(Mahal_Dist_RNA)
+)
+
+
+rna_cluster_cols <- c("RNA_Ref" = "#182D35", "RNA_Query_A" = "#e9c46a", "RNA_Query_B" = "#EA9148")
+cnv_cluster_cols <- c("CNV_Ref" = "#BE5136", "CNV_Query_X" = "#1A4B4A", "CNV_Query_Y" = "#8ab17d", "CNV_Query_Z" = "#2a9d8f")
+
+
+p2 <- ggplot(cm_output, base_aes) +
+  geom_point(aes(color = RNA_ori_cluster)) +
+  scale_color_manual(
+    values = rna_cluster_cols,
+    guide = guide_legend(nrow = 2, byrow = TRUE)
+  ) +
+  labs(color = "RNA\nCluster\nOriginal")
+
+p3 <- ggplot(cm_output, base_aes) +
+  geom_point(aes(color = CNV_ori_cluster)) +
+  scale_color_manual(
+    values = cnv_cluster_cols,
+    guide = guide_legend(nrow = 2, byrow = TRUE)
+  ) +
+  labs(color = "CNV\nCluster\nOriginal")
+
+(p2 + p3) &
+  theme_classic() &
+  theme(
+    text = element_text(size = 9),
+    legend.position = "bottom",
+    legend.byrow = FALSE
+  )
+```
+
+
+## Run Mean Shift
+
+Mean Shift is run on the CNV-RNA integrated space. Input bandwidth vectors are iterated over with mean silhouette scores used to determine the optimal bandwidth.
+
+```{r}
+ms_output <- run_mean_shift(
+  mahal_df = cm_output,
+  bandwidths = c(0.4, 0.5, 0.6, 0.7, 0.8),
+  max_clusters = 7,
+  iterations = 500,
+  sample_col = "sample_barcode",
+  rna_dist_col = "Mahal_Dist_RNA",
+  cnv_dist_col = "Mahal_Dist_CNV"
+)
+
+str(ms_output)
+```
+
+
+
+## Mean Shift Output
+
+Mean Shift cluster assignments are plotted to allow visual selection of malignant clusters.
+
+```{r, fig.width=10, fig.height=4, out.width="95%"}
+# Extract plotting data from Mean Shift output
+ms_plotting <- ms_output$data
+
+p1 <- ggplot(ms_plotting, base_aes) +
+  geom_point(aes(color = factor(Assignment))) +
+  scale_color_manual(
+    values = c("1" = "#b597f6", "2" = "#96c6ea", "3" = "#F595C0")
+  ) +
+  labs(color = "Mean Shift\nAssignment")
+
+
+(p1 + p2 + p3) &
+  theme_classic() &
+  theme(
+    text = element_text(size = 9),
+    legend.position = "bottom"
+  )
+```
+
+## Malignant Cluster Selection
+
+Malignant clusters are selected visually from the Mean Shift cluster Assignment (first plot from the left). Clusters which have low distances to reference malignant clusters on both axes are considered malignant. In this case it is Assignment == 1.
+
+```{r, fig.width=8, fig.height=4.5}
+manual_malignant_clusters <- c(1)
+
+
+ms_plotting <- ms_plotting %>% mutate(Malignancy = ifelse(Assignment %in% manual_malignant_clusters, "Malignant", "Non-Malignant"))
+
+
+p4 <- ggplot(ms_plotting, base_aes) +
+  geom_point(aes(color = factor(Malignancy))) +
+  scale_color_manual(
+    values = c("Non-Malignant" = "#218B68", "Malignant" = "#ee454b")
+  ) +
+  labs(color = "Malignancy")
+
+(p1 + p4) &
+  theme_classic() &
+  theme(
+    text = element_text(size = 9),
+    legend.position = "bottom"
+  )
+```
+
+
+
+#### Session Info
+
+```{r}
+sessionInfo()
+```

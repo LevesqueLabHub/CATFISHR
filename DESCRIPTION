@@ -1,0 +1,30 @@
+Package: CATFISHR
+Title: CNV And Transcriptome Framework for Identification of Similarity to High-confidence References
+Version: 0.1.0
+Authors@R: person("Prachi", "Shukla", role = c("aut", "cre"), email = "prachi.shukla@usz.ch")
+Description: Identifies malignant cells in single-cell and spatial transcriptomic data
+    by integrating RNA expression and inferred copy number variation
+    (CNV). Mahalanobis distances are measured from cells to high-confidence reference 
+    centroids in both RNA and CNV PCA spaces, then jointly clustered using mean 
+    shift to separate malignant from non-malignant components.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Imports:
+    stats,
+    meanShiftR,
+    cluster
+Depends: 
+    R (>= 3.5)
+LazyData: true
+Suggests: 
+    knitr,
+    rmarkdown,
+    ggplot2,
+    rlang,
+    patchwork,
+    dplyr,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0
+Config/testthat/edition: 3

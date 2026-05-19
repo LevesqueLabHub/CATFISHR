@@ -1,0 +1,8 @@
+^renv$
+^renv\.lock$
+^LICENSE\.md$
+^CATFISHR\.Rproj$
+^data-raw$
+^\.Rproj\.user$
+^doc$
+^Meta$
