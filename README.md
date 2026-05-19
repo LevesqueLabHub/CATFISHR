@@ -135,8 +135,7 @@ ms_output <- run_mean_shift(
 
 ```r
 ggplot(ms_plotting, 
-  aes(x = log2(Mahal_Dist_CNV),
-  y = log2(Mahal_Dist_RNA))) +
+  aes(x = log2(Mahal_Dist_CNV), y = log2(Mahal_Dist_RNA))) +
   geom_point(aes(color = factor(Assignment))) +
   labs(color = "Mean Shift\nAssignment")
 ```
