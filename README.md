@@ -10,7 +10,9 @@ Install the development version from GitHub:
 
 ```r
 install.packages("remotes")
-remotes::install_github("pshukla63/CATFISHR")
+remotes::install_github("pshukla63/CATFISHR",
+  build_vignettes = TRUE,
+  dependencies = TRUE)
 ```
 
 ## Overview
