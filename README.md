@@ -136,6 +136,9 @@ ms_output <- run_mean_shift(
 ### Step 4: Plot mean shift assignments
 
 ```r
+# Extracting data for plotting
+ms_plotting <- ms_output$data
+
 ggplot(ms_plotting, 
   aes(x = log2(Mahal_Dist_CNV), y = log2(Mahal_Dist_RNA))) +
   geom_point(aes(color = factor(Assignment))) +
