@@ -1,6 +1,6 @@
 # CATFISHR
 
-**CATFISHR**: CNV And Transcriptome Framework for Identification of Similarity to High-confidence References
+**CATFISHR**: inferred CNV And Transcriptome Framework for Identification of Similarity to High-confidence References
 
 CATFISHR identifies malignant cells by integrating RNA expression similarity and inferred CNV similarity to high-confidence malignant reference clusters.
 
@@ -10,7 +10,7 @@ Install the development version from GitHub:
 
 ```r
 install.packages("remotes")
-remotes::install_github("pshukla63/CATFISHR",
+remotes::install_github("LevesqueLabHub/CATFISHR",
   build_vignettes = TRUE,
   dependencies = TRUE)
 ```
