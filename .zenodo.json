@@ -1,0 +1,40 @@
+{
+  "creators": [
+    {
+      "name": "Shukla, Prachi",
+      "orcid": "0009-0005-1355-7144",
+      "affiliation": "University of Zürich"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Turko, Patrick",
+      "affiliation": "University Hospital Zürich",
+      "type": "Supervisor"
+    },
+    {
+      "name": "Haunerdinger, Veronika",
+      "affiliation": "University Hospital Zürich",
+      "type": "Supervisor"
+    },
+    {
+      "name": "Levesque, Mitchell",
+      "affiliation": "University Hospital Zürich",
+      "type": "ProjectLeader"
+    }
+  ],
+  "title": "CATFISHR: an R package for identification of malignant cells in scRNA-seq cancer data",
+  "version": "1.0.0",
+  "access_right": "open",
+  "keywords": [
+    "R package",
+    "single-cell RNA-seq",
+    "cancer genomics",
+    "copy number variation",
+    "malignant cell identification"
+  ],
+  "license": "mit",
+  "upload_type": "software",
+  "language": "eng",
+  "description": "This archive contains the source code for the CATFISHR R package. The repository includes package functions, documentation, vignettes, example data, and dependency metadata. This archive corresponds to the software package described in the associated manuscript. It does not contain the complete manuscript-specific analysis workflow used to generate all figures and results."
+}
